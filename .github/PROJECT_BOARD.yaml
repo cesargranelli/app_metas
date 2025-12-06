@@ -1,0 +1,108 @@
+name: "App de Metas / Hábitos Gamificado"
+description: "Project Board do MVP + Versões 2.0 e 3.0"
+type: "project"
+
+# --------------------------------------------------
+# Columnas do Kanban
+# --------------------------------------------------
+columns:
+  - id: backlog
+    name: "Backlog"
+    description: "Todas as tarefas antes do planejamento"
+  
+  - id: todo
+    name: "A Fazer"
+    description: "Planejado para desenvolvimento"
+  
+  - id: in_progress
+    name: "Em Progresso"
+    description: "Tarefas em desenvolvimento"
+  
+  - id: review
+    name: "Revisão"
+    description: "Aguardando revisão / validação"
+  
+  - id: done
+    name: "Concluído"
+    description: "Finalizado e aprovado"
+
+
+# --------------------------------------------------
+# Labels
+# --------------------------------------------------
+labels:
+  - name: "frontend"
+    color: "#1E90FF"
+  - name: "backend"
+    color: "#8A2BE2"
+  - name: "design"
+    color: "#FF8C00"
+  - name: "firebase"
+    color: "#FFCA28"
+  - name: "gamification"
+    color: "#00C853"
+  - name: "documentation"
+    color: "#9E9E9E"
+  - name: "mvp"
+    color: "#1976D2"
+  - name: "v2"
+    color: "#6A1B9A"
+  - name: "v3"
+    color: "#4E342E"
+
+
+# --------------------------------------------------
+# Automations
+# --------------------------------------------------
+automations:
+
+  # Items movidos automaticamente quando o status muda
+  - type: status
+    status: "Backlog"
+    target: backlog
+
+  - type: status
+    status: "Todo"
+    target: todo
+
+  - type: status
+    status: "In Progress"
+    target: in_progress
+
+  - type: status
+    status: "Review"
+    target: review
+
+  - type: status
+    status: "Done"
+    target: done
+
+  # Se adicionar label "mvp", mover para A Fazer
+  - type: label
+    label: "mvp"
+    target: todo
+
+  # Quando fechar issue → mover para Done
+  - type: event
+    event: "issue_closed"
+    target: done
+
+
+# --------------------------------------------------
+# Views (opcionais)
+# --------------------------------------------------
+views:
+  - name: "MVP Apenas"
+    filter: "label:mvp"
+
+  - name: "Gamificação"
+    filter: "label:gamification"
+
+  - name: "Backend/Firebase"
+    filter: "label:firebase"
+
+  - name: "Versão 2.0"
+    filter: "label:v2"
+
+  - name: "Versão 3.0"
+    filter: "label:v3"
