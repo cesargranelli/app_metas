@@ -1,0 +1,68 @@
+name: Create Issues Automatically
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/issues/**"
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create_issues:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Create issues from markdown files
+        env:
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for file in .github/issues/*.md; do
+            echo "Processing $file"
+
+            # Extract fields from YAML front matter
+            title=$(sed -n 's/^title: "\(.*\)"/\1/p' $file)
+            labels=$(sed -n 's/^labels: \[\(.*\)\]/\1/p' $file | tr -d '" ')
+            status=$(sed -n 's/^status: "\(.*\)"/\1/p' $file)
+
+            # Extract body (skip YAML header)
+            body=$(sed '1,/^---$/d' $file)
+
+            # If issue already exists, skip
+            if gh issue list --repo "$REPO" --search "$title" --limit 1 | grep "$title" > /dev/null; then
+              echo "Issue '$title' already exists — skipping."
+              continue
+            fi
+
+            echo "Creating issue: $title"
+
+            # Create issue as JSON
+            data=$(jq -n \
+              --arg title "$title" \
+              --arg body "$body" \
+              --arg labels "$labels" \
+              '{
+                title: $title,
+                body: $body,
+                labels: ($labels | split(","))
+              }'
+            )
+
+            # Call GitHub API
+            curl -X POST \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/$REPO/issues \
+              -d "$data"
+
+            echo "Issue created."
+          done
